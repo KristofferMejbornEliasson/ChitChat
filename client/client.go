@@ -1,6 +1,8 @@
 package main
 
 import (
+	. "chitchat/m/grpc"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -22,4 +24,5 @@ func main() {
 			log.Fatalf("error closing connection:\n%v", err)
 		}
 	}(conn)
+	_ = NewChitChatClient(conn)
 }
