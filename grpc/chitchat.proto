@@ -3,4 +3,9 @@ edition = "2023";
 option go_package = "./chitchat";
 
 service ChitChat {
+  rpc RouteChat(stream Message) returns (stream Message) {}
+}
+
+message Message {
+  string text = 1;
 }

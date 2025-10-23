@@ -1,12 +1,16 @@
 package main
 
 import (
+	"bufio"
+	"context"
+	"io"
+	"log"
+	"os"
+
 	. "chitchat/m/grpc"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"log"
 )
 
 func main() {
@@ -24,5 +28,47 @@ func main() {
 			log.Fatalf("error closing connection:\n%v", err)
 		}
 	}(conn)
-	_ = NewChitChatClient(conn)
+	client := NewChitChatClient(conn)
+	stream, err := client.RouteChat(context.Background())
+	if err != nil {
+		log.Fatalf("fail to call RouteChat: %v", err)
+	}
+	txt := "This is a message from a client! :)"
+	msg := &Message{}
+	msg.Text = &txt
+	err = stream.Send(msg)
+	if err != nil {
+		log.Fatalf("fail to call Send: %v", err)
+	}
+	wait := make(chan struct{})
+	go func() {
+		for {
+			in, err := stream.Recv()
+			if err == io.EOF {
+				close(wait)
+				return
+			}
+			if err != nil {
+				log.Fatalf("Connection was closed.")
+			}
+			log.Println(in.GetText())
+		}
+	}()
+	reader := bufio.NewScanner(os.Stdin)
+	for {
+		reader.Scan()
+		if reader.Err() != nil {
+			log.Fatalf("fail to call Read: %v", err)
+		}
+		text := reader.Text()
+		if text == "exit" {
+			break
+		}
+		err = stream.Send(&Message{Text: &text})
+		if err != nil {
+			log.Fatalf("fail to call Send: %v", err)
+		}
+	}
+	_ = stream.CloseSend()
+	<-wait
 }
