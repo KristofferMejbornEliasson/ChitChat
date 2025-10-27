@@ -70,7 +70,7 @@ func (c *Clock) Update(other []int64) {
 	}
 
 	if len(c.vector) < len(other) { // If other array is longer, we update *it*, then copy it into ourselves.
-		for i := 0; i < len(other); i++ {
+		for i := 0; i < len(c.vector); i++ {
 			if c.vector[i] < other[i] {
 				other[i] = c.vector[i]
 			}
