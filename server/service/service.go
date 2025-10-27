@@ -23,10 +23,10 @@ func (s *ChitChatService) nextID() (id int32) {
 	return id
 }
 
-func (s *ChitChatService) RouteChat(server grpc.BidiStreamingServer[Message, Message]) error {
+func (s *ChitChatService) RouteChat(stream grpc.BidiStreamingServer[Message, Message]) error {
 	clientID := s.nextID()
 	log.Printf("Established connection with a new client, ID = %d\n", clientID)
-	conn := Connection{Conn: server, HomeChannel: s.Channel, ReceiveChannel: make(chan *Message)}
+	conn := Connection{Conn: stream, HomeChannel: s.Channel, ReceiveChannel: make(chan *Message)}
 	s.Connections = append(s.Connections, conn)
 	conn.Init(clientID)
 	go conn.Listen()
