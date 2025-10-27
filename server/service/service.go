@@ -26,11 +26,13 @@ func (s *ChitChatService) nextID() (id int32) {
 func (s *ChitChatService) RouteChat(stream grpc.BidiStreamingServer[Message, Message]) error {
 	clientID := s.nextID()
 	log.Printf("Established connection with a new client, ID = %d\n", clientID)
-	conn := Connection{Conn: stream, HomeChannel: s.Channel, ReceiveChannel: make(chan *Message)}
+	conn := Connection{Conn: stream, HomeChannel: s.Channel,
+		ReceiveChannel: make(chan *Message), Id: clientID}
 	s.Connections = append(s.Connections, conn)
-	conn.Init(clientID)
+	conn.Init()
 	go conn.Listen()
-	select {}
+	for {
+	}
 }
 
 func (s *ChitChatService) ManageChannels() {
@@ -41,7 +43,7 @@ func (s *ChitChatService) ManageChannels() {
 		select {
 		case msg := <-s.Channel:
 			if VERBOSE {
-				log.Println("Got message from home Channel:" + msg.GetText())
+				log.Printf("Got message from home channel:\n%v\n", msg.GetText())
 			}
 			for _, conn := range s.Connections {
 				conn.ReceiveChannel <- msg
