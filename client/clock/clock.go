@@ -28,31 +28,29 @@ func (c *Clock) CopyVector() (copiedVector []int64) {
 	return copiedVector
 }
 
-func ensureArrayBigEnough(array *[]int64, index int32) (bigEnoughArray *[]int64) {
-	if array == nil {
-		arr := make([]int64, index+1)
-		array = &arr
+func (c *Clock) grow(length int32) {
+	if c.vector == nil {
+		c.vector = make([]int64, length)
+	} else if len(c.vector) < int(length) {
+		arr := make([]int64, length)
+		copy(arr, c.vector)
+		c.vector = arr
 	}
-	if len(*array) <= int(index) {
-		arr := make([]int64, index+1)
-		copy(arr, *array)
-		array = &arr
-	}
-	return array
 }
 
 func (c *Clock) Increment(index int32) {
 	c.lock.Lock()
-	ensureArrayBigEnough(&c.vector, index)
-	c.vector[index] += 1
+	c.grow(index + 1)
+	c.vector[index]++
 	c.lock.Unlock()
 }
 
 func (c *Clock) IncrementAndCopy(index int32) (updatedCopy []int64) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	ensureArrayBigEnough(&c.vector, index)
-	c.vector[index] += 1
+
+	c.grow(index + 1)
+	c.vector[index]++
 	updatedCopy = make([]int64, len(c.vector))
 	copy(updatedCopy, c.vector)
 	return updatedCopy
