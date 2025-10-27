@@ -21,6 +21,10 @@ func (c *Client) IncrementClock() {
 	c.vectorClock.Increment(c.id)
 }
 
+func (c *Client) IncrementAndCopyClock() (updatedCopy []int64) {
+	return c.vectorClock.IncrementAndCopy(c.id)
+}
+
 func NewClient(msg *Message) *Client {
 	return &Client{
 		id:          msg.GetId(),
@@ -38,8 +42,10 @@ func (c *Client) Listen(wait chan struct{}, stream grpc.BidiStreamingClient[Mess
 		if err != nil {
 			log.Fatalf("Connection was closed.")
 		}
+		c.IncrementClock()
 		c.vectorClock.Update(in.GetClock())
 		log.Println(in.GetText())
+		log.Println(c.vectorClock)
 	}
 }
 
@@ -54,7 +60,11 @@ func (c *Client) AwaitUserInput(stream grpc.BidiStreamingClient[Message, Message
 		if text == "exit" {
 			break
 		}
-		err := stream.Send(&Message{Text: &text})
+		err := stream.Send(&Message{
+			Text:  &text,
+			Id:    &c.id,
+			Clock: c.IncrementAndCopyClock(),
+		})
 		if err != nil {
 			log.Fatalf("fail to call Send: %v", err)
 		}
