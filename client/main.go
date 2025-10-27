@@ -41,11 +41,6 @@ func main() {
 		log.Fatalf("fail to call Send: %v", err)
 	}
 
-	in, err := stream.Recv()
-	if err != nil {
-		log.Fatalf("No initial response received from server:\n%v", err)
-	}
-
-	c := NewClient(in)
-	c.Run(stream)
+	c := NewClient(stream)
+	c.Run()
 }
