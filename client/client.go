@@ -19,6 +19,10 @@ type Client struct {
 	vectorClock Clock
 }
 
+func (c *Client) IncrementClock() {
+	c.vectorClock.Increment(c.id)
+}
+
 func newClient(msg *Message) *Client {
 	return &Client{
 		id:          msg.GetId(),

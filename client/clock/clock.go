@@ -8,6 +8,10 @@ func NewClock(vector []int64) Clock {
 	return Clock{vector: vector}
 }
 
+func (c *Clock) Increment(index int32) {
+	c.vector[index] += 1
+}
+
 func (c *Clock) Update(vector []int64) {
 	if c.vector == nil {
 		c.vector = vector
