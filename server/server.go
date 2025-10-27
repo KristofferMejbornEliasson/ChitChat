@@ -14,8 +14,9 @@ const VERBOSE = false
 
 type ChitChatService struct {
 	UnimplementedChitChatServer
-	connections []Connection
-	channel     chan *Message
+	connections  []Connection
+	channel      chan *Message
+	nextClientId int32
 }
 
 type Connection struct {
@@ -24,10 +25,16 @@ type Connection struct {
 	receiveChannel chan *Message
 }
 
+func (s *ChitChatService) nextID() int32 {
+	s.nextClientId++
+	return s.nextClientId
+}
+
 func (s *ChitChatService) RouteChat(server grpc.BidiStreamingServer[Message, Message]) error {
 	log.Println("Established connection with a new client.")
 	conn := Connection{server, s.channel, make(chan *Message)}
 	s.connections = append(s.connections, conn)
+	conn.Init(s.nextID())
 	go conn.Listen()
 	for {
 	}
@@ -60,6 +67,16 @@ func (c *Connection) Listen() {
 		}
 		c.homeChannel <- recv
 		// log.Printf("Conveyed message to home: %s", recv)
+	}
+}
+
+func (c *Connection) Init(clientId int32) {
+	err := c.conn.Send(&Message{
+		Id:    &clientId,
+		Clock: make([]int64, clientId),
+	})
+	if err != nil {
+		log.Fatalf("failed to send response to client during initial setup:\n%v", err)
 	}
 }
 
