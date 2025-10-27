@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"bufio"
@@ -21,7 +21,7 @@ func (c *Client) IncrementClock() {
 	c.vectorClock.Increment(c.id)
 }
 
-func newClient(msg *Message) *Client {
+func NewClient(msg *Message) *Client {
 	return &Client{
 		id:          msg.GetId(),
 		vectorClock: NewClock(msg.GetClock()),

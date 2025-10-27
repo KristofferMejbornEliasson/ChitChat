@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	. "chitchat/m/client/client"
 	. "chitchat/m/grpc"
 )
 
@@ -45,6 +46,6 @@ func main() {
 		log.Fatalf("No initial response received from server:\n%v", err)
 	}
 
-	c := newClient(in)
+	c := NewClient(in)
 	c.Run(stream)
 }
