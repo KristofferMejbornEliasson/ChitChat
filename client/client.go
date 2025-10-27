@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 
+	. "chitchat/m/client/clock"
 	. "chitchat/m/grpc"
 
 	"google.golang.org/grpc"
@@ -20,10 +21,8 @@ type Client struct {
 
 func newClient(msg *Message) *Client {
 	return &Client{
-		id: msg.GetId(),
-		vectorClock: Clock{
-			vector: msg.GetClock(),
-		},
+		id:          msg.GetId(),
+		vectorClock: NewClock(msg.GetClock()),
 	}
 }
 
