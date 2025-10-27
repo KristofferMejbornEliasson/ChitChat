@@ -14,7 +14,7 @@ import (
 
 type Client struct {
 	id          int32
-	vectorClock Clock
+	vectorClock *Clock
 }
 
 func (c *Client) IncrementClock() {
