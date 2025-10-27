@@ -13,6 +13,20 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+type Client struct {
+	id          int32
+	vectorClock Clock
+}
+
+func newClient(msg *Message) *Client {
+	return &Client{
+		id: msg.GetId(),
+		vectorClock: Clock{
+			vector: msg.GetClock(),
+		},
+	}
+}
+
 func main() {
 	// Create a gRPC channel
 	// If credentials are needed, these are set in the options.
@@ -40,6 +54,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("fail to call Send: %v", err)
 	}
+	in, err := stream.Recv()
+	if err != nil {
+		log.Fatalf("No initial response received from server:\n%v", err)
+	}
+	c := newClient(in)
+
 	wait := make(chan struct{})
 	go func() {
 		for {
@@ -51,6 +71,7 @@ func main() {
 			if err != nil {
 				log.Fatalf("Connection was closed.")
 			}
+			c.vectorClock.Update(in.GetClock())
 			log.Println(in.GetText())
 		}
 	}()
