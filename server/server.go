@@ -38,9 +38,7 @@ func (s *ChitChatService) RouteChat(server grpc.BidiStreamingServer[Message, Mes
 	s.connections = append(s.connections, conn)
 	conn.Init(clientID)
 	go conn.Listen()
-	for {
-	}
-	return nil
+	select {}
 }
 
 func (c *Connection) Listen() {
