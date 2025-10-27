@@ -25,16 +25,18 @@ type Connection struct {
 	receiveChannel chan *Message
 }
 
-func (s *ChitChatService) nextID() int32 {
+func (s *ChitChatService) nextID() (id int32) {
+	id = s.nextClientId
 	s.nextClientId++
-	return s.nextClientId
+	return id
 }
 
 func (s *ChitChatService) RouteChat(server grpc.BidiStreamingServer[Message, Message]) error {
-	log.Println("Established connection with a new client.")
+	clientID := s.nextID()
+	log.Printf("Established connection with a new client, ID = %d\n", clientID)
 	conn := Connection{server, s.channel, make(chan *Message)}
 	s.connections = append(s.connections, conn)
-	conn.Init(s.nextID())
+	conn.Init(clientID)
 	go conn.Listen()
 	for {
 	}
