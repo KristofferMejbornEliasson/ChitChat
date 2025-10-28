@@ -53,7 +53,14 @@ func (c *Client) Logf(format string, v ...any) {
 }
 
 func (c *Client) PrintMessage(msg *Message) {
-	fmt.Printf("Message received from client #%d at %s:\n%s\n", msg.GetId(), c.vectorClock, msg.GetText())
+	if msg == nil {
+		return
+	}
+	if msg.GetId() == -1 {
+		fmt.Printf("%v: %s\n", msg.GetClock(), msg.GetText())
+	} else {
+		fmt.Printf("Message received from client #%d at %s:\n%s\n", msg.GetId(), c.vectorClock, msg.GetText())
+	}
 }
 
 func (c *Client) Run() {
