@@ -61,10 +61,11 @@ func (s *ChitChatService) RouteChat(stream grpc.BidiStreamingServer[Message, Mes
 	conn.ListenToClient()
 	conn.Open = false
 	s.logf("Closed connection to client #%d.\n", clientID)
-	quitText := fmt.Sprintf("Client #%d left the chat at logical time %s", clientID, s.Clock)
+	quitText := fmt.Sprintf("Client #%d left the chat", clientID)
+	var quitID int32 = -1
 	s.Channel <- &Message{
 		Text:  &quitText,
-		Id:    &clientID,
+		Id:    &quitID,
 		Clock: s.Clock.Vector(),
 	}
 	return nil
@@ -82,15 +83,28 @@ func (s *ChitChatService) ManageChannels() {
 			log.Printf("Got message from home channel:\n%v\n", msg.GetText())
 		}
 		msg.Clock = s.Clock.Vector()
-		for _, conn := range s.Connections {
-			if conn.Open {
-				conn.ReceiveChannel <- msg
-				s.logf("Broadcasting message to client #%d\n", conn.Id)
-				if VERBOSE {
-					log.Printf("ChitChatService relayed message to connection #%d\n", conn.Id)
+		if len(msg.GetText()) > CHAT_MESSAGE_LENGTH_LIMIT {
+			s.logf("Message from client #%d was too long; rejected.", msg.GetId())
+			if s.Connections[msg.GetId()].Open == true {
+				rejectionText := "Message too long. Limit is 128 characters."
+				var rejectionID int32 = -1
+				rejection := Message{
+					Text:  &rejectionText,
+					Id:    &rejectionID,
+					Clock: s.Clock.Vector(),
+				}
+				s.Connections[msg.GetId()].ReceiveChannel <- &rejection
+			}
+		} else {
+			for _, conn := range s.Connections {
+				if conn.Open {
+					conn.ReceiveChannel <- msg
+					s.logf("Broadcasting message to client #%d\n", conn.Id)
+					if VERBOSE {
+						log.Printf("ChitChatService relayed message to connection #%d\n", conn.Id)
+					}
 				}
 			}
 		}
-
 	}
 }
