@@ -62,10 +62,9 @@ func (s *ChitChatService) RouteChat(stream grpc.BidiStreamingServer[Message, Mes
 	conn.Open = false
 	s.Logf("Closed connection to client #%d.\n", clientID)
 	quitText := fmt.Sprintf("Client #%d left the chat", clientID)
-	var quitID int32 = -1
 	s.Channel <- &Message{
 		Text:  &quitText,
-		Id:    &quitID,
+		Id:    &SYSTEM_ID,
 		Clock: s.Clock.Vector(),
 	}
 	return nil
@@ -87,10 +86,9 @@ func (s *ChitChatService) ManageChannels() {
 			s.Logf("Message from client #%d was too long; rejected.", msg.GetId())
 			if s.Connections[msg.GetId()].Open == true {
 				rejectionText := "Message too long. Limit is 128 characters."
-				var rejectionID int32 = -1
 				rejection := Message{
 					Text:  &rejectionText,
-					Id:    &rejectionID,
+					Id:    &SYSTEM_ID,
 					Clock: s.Clock.Vector(),
 				}
 				s.Connections[msg.GetId()].ReceiveChannel <- &rejection

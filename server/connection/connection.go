@@ -63,6 +63,7 @@ func (c *Connection) Init(clock *clock.Clock) {
 
 	vector := clock.Vector()
 	text := fmt.Sprintf("Client #%d joined the chat at logical time %v", c.Id, vector)
+
 	msg := Message{
 		Text:  &text,
 		Id:    &c.Id,
@@ -73,5 +74,6 @@ func (c *Connection) Init(clock *clock.Clock) {
 	if err != nil {
 		log.Fatalf("failed to send response to client #%d during initial setup:\n%v", c.Id, err)
 	}
+	msg.Id = &SYSTEM_ID
 	c.HomeChannel <- &msg
 }
