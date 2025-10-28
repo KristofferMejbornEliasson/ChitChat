@@ -18,6 +18,17 @@ type ChitChatService struct {
 	Channel      chan *Message
 	nextClientId int32
 	Clock        *clock.Clock
+	Logger       *log.Logger
+}
+
+func (s *ChitChatService) log(message string) {
+	s.ensureClockExists()
+	s.Logger.SetPrefix(s.Clock.String() + ": ")
+	s.Logger.Printf(message)
+}
+
+func (s *ChitChatService) logf(format string, v ...any) {
+	s.log(fmt.Sprintf(format, v...))
 }
 
 func (s *ChitChatService) nextID() (id int32) {
@@ -39,7 +50,7 @@ func (s *ChitChatService) incrementClock(clientID int32) {
 
 func (s *ChitChatService) RouteChat(stream grpc.BidiStreamingServer[Message, Message]) error {
 	clientID := s.nextID()
-	log.Printf("Established connection with a new client, ID = %d\n", clientID)
+	s.logf("Established connection with a new client, ID = %d\n", clientID)
 	conn := Connection{Conn: stream, HomeChannel: s.Channel,
 		ReceiveChannel: make(chan *Message), Id: clientID,
 		Open: true}
@@ -50,6 +61,7 @@ func (s *ChitChatService) RouteChat(stream grpc.BidiStreamingServer[Message, Mes
 	conn.ListenToClient()
 	conn.Open = false
 	quitText := fmt.Sprintf("Client #%d left the chat at logical time %s", clientID, s.Clock)
+	s.log(quitText)
 	s.Channel <- &Message{
 		Text:  &quitText,
 		Id:    &clientID,
@@ -73,6 +85,7 @@ func (s *ChitChatService) ManageChannels() {
 		for _, conn := range s.Connections {
 			if conn.Open {
 				conn.ReceiveChannel <- msg
+				s.logf("Broadcasting message to client #%d\n", conn.Id)
 				if VERBOSE {
 					log.Printf("ChitChatService relayed message to connection #%d\n", conn.Id)
 				}
