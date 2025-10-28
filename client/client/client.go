@@ -2,7 +2,7 @@ package client
 
 import (
 	"bufio"
-	"io"
+	"fmt"
 	"log"
 	"os"
 
@@ -44,7 +44,8 @@ func NewClient(stream grpc.BidiStreamingClient[Message, Message], logger *log.Lo
 }
 
 func (c *Client) Log(message string) {
-	c.logger.SetPrefix(c.vectorClock.String() + ": ")
+	prefixString := fmt.Sprintf("Client #%d %s: ", c.id, c.vectorClock.String())
+	c.logger.SetPrefix(prefixString)
 	c.logger.Print(message)
 }
 
@@ -56,11 +57,14 @@ func (c *Client) PrintMessage(msg *Message) {
 	if msg == nil {
 		return
 	}
+	var text string
 	if msg.GetId() == -1 {
-		fmt.Printf("%v: %s\n", msg.GetClock(), msg.GetText())
+		text = msg.GetText()
 	} else {
-		fmt.Printf("Message received from client #%d at %s:\n%s\n", msg.GetId(), c.vectorClock, msg.GetText())
+		text = fmt.Sprintf("Message received from client #%d:\n%s", msg.GetId(), msg.GetText())
 	}
+	c.Logf("%s\n", text)
+	fmt.Printf("%s: %s\n", c.vectorClock, text)
 }
 
 func (c *Client) Run() {

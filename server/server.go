@@ -14,15 +14,14 @@ import (
 
 func main() {
 	file, err := os.Create("log.txt")
-	logger := log.New(file, "[]: ", 0)
+	logger := log.New(file, "Server []: ", 0)
 	service := ChitChatService{
 		Connections: []*Connection{},
 		Channel:     make(chan *Message),
 		Logger:      logger,
 	}
 	defer func(writer *os.File, logger *log.Logger) {
-		logger.SetPrefix(service.Clock.String() + ": ")
-		logger.Println("Server shut down.")
+		service.Log("Server shut down.")
 		if err != nil {
 			_ = file.Close()
 		}
@@ -32,7 +31,7 @@ func main() {
 	if err != nil {
 		logger.Fatalf("failed to listen: %v", err)
 	}
-	logger.Printf("Listening on %v\n", lis.Addr())
+	service.Logf("Listening on %v\n", lis.Addr())
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
 	RegisterChitChatServer(grpcServer, &service)

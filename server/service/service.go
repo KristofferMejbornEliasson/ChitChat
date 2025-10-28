@@ -21,14 +21,14 @@ type ChitChatService struct {
 	Logger       *log.Logger
 }
 
-func (s *ChitChatService) log(message string) {
+func (s *ChitChatService) Log(message string) {
 	s.ensureClockExists()
-	s.Logger.SetPrefix(s.Clock.String() + ": ")
+	s.Logger.SetPrefix("Server " + s.Clock.String() + ": ")
 	s.Logger.Printf(message)
 }
 
-func (s *ChitChatService) logf(format string, v ...any) {
-	s.log(fmt.Sprintf(format, v...))
+func (s *ChitChatService) Logf(format string, v ...any) {
+	s.Log(fmt.Sprintf(format, v...))
 }
 
 func (s *ChitChatService) nextID() (id int32) {
@@ -50,7 +50,7 @@ func (s *ChitChatService) incrementClock(clientID int32) {
 
 func (s *ChitChatService) RouteChat(stream grpc.BidiStreamingServer[Message, Message]) error {
 	clientID := s.nextID()
-	s.logf("Established connection with a new client, ID = %d\n", clientID)
+	s.Logf("Established connection with a new client, ID = %d\n", clientID)
 	conn := Connection{Conn: stream, HomeChannel: s.Channel,
 		ReceiveChannel: make(chan *Message), Id: clientID,
 		Open: true}
@@ -60,7 +60,7 @@ func (s *ChitChatService) RouteChat(stream grpc.BidiStreamingServer[Message, Mes
 	go conn.RelayToClient()
 	conn.ListenToClient()
 	conn.Open = false
-	s.logf("Closed connection to client #%d.\n", clientID)
+	s.Logf("Closed connection to client #%d.\n", clientID)
 	quitText := fmt.Sprintf("Client #%d left the chat", clientID)
 	var quitID int32 = -1
 	s.Channel <- &Message{
@@ -84,7 +84,7 @@ func (s *ChitChatService) ManageChannels() {
 		}
 		msg.Clock = s.Clock.Vector()
 		if len(msg.GetText()) > CHAT_MESSAGE_LENGTH_LIMIT {
-			s.logf("Message from client #%d was too long; rejected.", msg.GetId())
+			s.Logf("Message from client #%d was too long; rejected.", msg.GetId())
 			if s.Connections[msg.GetId()].Open == true {
 				rejectionText := "Message too long. Limit is 128 characters."
 				var rejectionID int32 = -1
@@ -99,7 +99,7 @@ func (s *ChitChatService) ManageChannels() {
 			for _, conn := range s.Connections {
 				if conn.Open {
 					conn.ReceiveChannel <- msg
-					s.logf("Broadcasting message to client #%d\n", conn.Id)
+					s.Logf("Broadcasting message to client #%d\n", conn.Id)
 					if VERBOSE {
 						log.Printf("ChitChatService relayed message to connection #%d\n", conn.Id)
 					}
