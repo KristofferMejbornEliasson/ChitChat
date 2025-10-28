@@ -21,7 +21,7 @@ func main() {
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
 	service := ChitChatService{
-		Connections: []Connection{},
+		Connections: []*Connection{},
 		Channel:     make(chan *Message),
 	}
 	RegisterChitChatServer(grpcServer, &service)
