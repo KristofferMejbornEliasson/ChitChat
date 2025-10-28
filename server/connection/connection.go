@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"chitchat/m/client/clock"
+
 	"google.golang.org/grpc"
 
 	. "chitchat/m/constants"
@@ -49,18 +51,19 @@ func (c *Connection) Listen() {
 	}
 }
 
-func (c *Connection) Init() {
+func (c *Connection) Init(clock *clock.Clock) {
 	// Ignore contents of the message which established this connection.
 	_, err := c.Conn.Recv()
 	if err != nil {
 		log.Fatalf("Failed to receive initial message from the new client #%d: %v", c.Id, err)
 	}
 
-	text := fmt.Sprintf("Client #%d joined the chat.", c.Id)
+	vector := clock.Vector()
+	text := fmt.Sprintf("Client #%d joined the chat at logical time %v", c.Id, vector)
 	msg := Message{
 		Text:  &text,
 		Id:    &c.Id,
-		Clock: make([]int64, c.Id),
+		Clock: vector,
 	}
 
 	err = c.Conn.Send(&msg)

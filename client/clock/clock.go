@@ -28,6 +28,13 @@ func (c *Clock) CopyVector() (copiedVector []int64) {
 	return copiedVector
 }
 
+func (c *Clock) Vector() []int64 {
+	if c.vector == nil {
+		c.vector = make([]int64, 0)
+	}
+	return c.vector
+}
+
 func (c *Clock) grow(length int32) {
 	if c.vector == nil {
 		c.vector = make([]int64, length)
