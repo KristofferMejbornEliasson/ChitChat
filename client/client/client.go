@@ -40,27 +40,21 @@ func NewClient(stream grpc.BidiStreamingClient[Message, Message]) *Client {
 	}
 }
 
+func (c *Client) PrintMessage(msg *Message) {
+	fmt.Printf("Message received from client #%d at %s:\n%s\n", msg.GetId(), c.vectorClock, msg.GetText())
+}
+
 func (c *Client) Run() {
 	wait := make(chan struct{})
 	go func() {
 		for {
 			in, err := c.stream.Recv()
-			if err == io.EOF {
-				close(wait)
-				return
-			}
 			if err != nil {
 				log.Fatalf("Connection was closed.")
 			}
-			if VERBOSE {
-				log.Printf("Incrementing clock.\n")
-			}
 			c.IncrementClock()
-			if VERBOSE {
-				log.Printf("Updating clock.\n")
-			}
 			c.vectorClock.Update(in.GetClock())
-			log.Println(in.GetText())
+			c.PrintMessage(in)
 		}
 	}()
 	reader := bufio.NewScanner(os.Stdin)
@@ -71,13 +65,21 @@ func (c *Client) Run() {
 		}
 		text := reader.Text()
 		if text == "exit" {
+			close(wait)
 			break
 		}
+		if text == "" {
+			continue
+		}
+
 		err := c.stream.Send(&Message{
 			Text:  &text,
 			Id:    &c.id,
 			Clock: c.IncrementAndCopyClock(),
 		})
+		if VERBOSE {
+			fmt.Printf("Client #%d sent a message through its stream.\n", c.id)
+		}
 		if err != nil {
 			log.Fatalf("fail to call Send: %v", err)
 		}
