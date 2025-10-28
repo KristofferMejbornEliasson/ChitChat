@@ -46,8 +46,8 @@ func (s *ChitChatService) RouteChat(stream grpc.BidiStreamingServer[Message, Mes
 	s.Connections = append(s.Connections, &conn)
 	s.incrementClock(clientID)
 	conn.Init(s.Clock)
-	go conn.SendFromChannel()
-	conn.Listen()
+	go conn.RelayToClient()
+	conn.ListenToClient()
 	conn.Open = false
 	quitText := fmt.Sprintf("Client #%d left the chat at logical time %s\n", clientID, s.Clock)
 	s.Channel <- &Message{

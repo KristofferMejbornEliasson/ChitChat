@@ -17,37 +17,40 @@ type Connection struct {
 	HomeChannel    chan *Message
 	ReceiveChannel chan *Message
 	Id             int32
+	Open           bool
 }
 
-func (c *Connection) Listen() {
-	go func() {
-		if VERBOSE {
-			log.Printf("Connection #%d listening to channels.\n", c.Id)
-		}
-		for {
-			msg := <-c.ReceiveChannel
-			if VERBOSE {
-				log.Printf("Connection #%d received a message through its receiving channel.\n", c.Id)
-			}
-			err := c.Conn.Send(msg)
-			if err != nil {
-				log.Fatalf("Connection #%d failed to send message:\n%v", c.Id, err)
-			}
-		}
-	}()
-	if VERBOSE {
-		log.Println("Listening to stream.")
-	}
+func (c *Connection) ListenToClient() {
 	for {
 		recv, err := c.Conn.Recv()
 		if err != nil {
-			return
+			c.Open = false
+			break
 		}
 		if VERBOSE {
 			log.Printf("Received message: %s", recv)
 		}
 		c.HomeChannel <- recv
-		// log.Printf("Conveyed message to home: %s", recv)
+	}
+}
+
+func (c *Connection) RelayToClient() {
+	if VERBOSE {
+		log.Printf("Connection #%d listening to channels.\n", c.Id)
+	}
+	for {
+		msg := <-c.ReceiveChannel
+		if VERBOSE {
+			log.Printf("Connection #%d received a message through its receiving channel.\n", c.Id)
+		}
+		err := c.Conn.Send(msg)
+		if err != nil {
+			c.Open = false
+			return
+		}
+		if VERBOSE {
+			log.Printf("Connection #%d sent a message through its stream.\n", c.Id)
+		}
 	}
 }
 
