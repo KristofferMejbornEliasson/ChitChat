@@ -1,0 +1,19 @@
+Client #2 [1 1 1]: Established connection with server.
+Client #2 [1 1 2]: Client #2 joined the chat at logical time [1 1 1]
+Client #2 [1 1 4]: Message received from client #2:
+Hello from client 2!!
+Client #2 [1 5 5]: Message received from client #1:
+Oh, I see your message, client 2! I'm client 1! That means I was... #2 to join!
+Client #2 [7 5 6]: Message received from client #0:
+Those darn computer scientists and their zero-indexing. So what if it's an offset from a heap address?!
+Client #2 [7 5 8]: Message received from client #2:
+You take that back you shoddy mathematician!
+Client #2 [7 5 9]: Client #1 left the chat
+Client #2 [7 5 11]: Message received from client #2:
+Oh no, look what you did! Client 1 got upset because of you!
+Client #2 [7 5 12]: Client #0 left the chat
+Client #2 [7 5 14]: Message received from client #2:
+Oh dear, client 0 didn't even type 'exit' to leave gracefully with a complete log...
+Client #2 [7 5 16]: Message received from client #2:
+I'll stick around until the server exits, though, I'm loyal like that.
+Client #2 [7 5 16]: Shutting down client

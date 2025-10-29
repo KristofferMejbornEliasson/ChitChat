@@ -1,0 +1,12 @@
+Client #1 [1 1]: Established connection with server.
+Client #1 [1 2]: Client #1 joined the chat at logical time [1 1]
+Client #1 [1 3 1]: Client #2 joined the chat at logical time [1 1 1]
+Client #1 [1 4 3]: Message received from client #2:
+Hello from client 2!!
+Client #1 [1 6 3]: Message received from client #1:
+Oh, I see your message, client 2! I'm client 1! That means I was... #2 to join!
+Client #1 [7 7 3]: Message received from client #0:
+Those darn computer scientists and their zero-indexing. So what if it's an offset from a heap address?!
+Client #1 [7 8 7]: Message received from client #2:
+You take that back you shoddy mathematician!
+Client #1 [7 8 7]: Shutting down client
